@@ -18,7 +18,7 @@ void kmp::GenerateNextTable(){
         if(i == j){
             j++;
             next[i] = j;
-            j++;
+            i++;
         }else{
             if(j != 0){
                 j = next[j-1];
