@@ -15,7 +15,7 @@ void kmp::GenerateNextTable(){
     int i = 1;
     next[0] = 0;
     while(i < next.size()){
-        if(i == j){
+        if(pattern[i] == pattern[j]){
             j++;
             next[i] = j;
             i++;
