@@ -9,25 +9,30 @@ struct interval{
   interval(int s, int e, int si): start(s), end(e), sign(si){};
 };
 
-int numInterval(int length);
+long long int numInterval(int length);
 
 void push(list<interval> & intervals, int start, int end, int sign);
 
-void calculateSum(list<interval> & intervals, int currentDay);
+long long int calculateSum(list<interval> & intervals, long long int sum,  int currentDay, int k);
 
-int* upvotesMetric(int* upvotes, int n, int k);
+void upvotesMetric(int* & upvotes, long long int* & metric, int n, int k);
 
 
 int main(){
 	int n = 0; // number of days
 	int k = 0; // window size
-  int* upvotes = new int [n]; 
   cin >> n >> k;
+  int* upvotes = new int[n]; 
   for(int i = 0; i < n; i++){
     cin >> upvotes[i];
   }
+  
+  // Result; 
+  long long int* metric = new long long int[n-k+1];
+  // Initialize Result 
+  memset(metric, 0, sizeof(long long int)*(n-k+1));
 
-  int* metric = upvotesMetric(upvotes, n, k); 
+  upvotesMetric(upvotes, metric, n, k); 
   
   for(int i = 0; i < n-k+1; i++){
     cout << metric[i]<<endl;
@@ -39,7 +44,7 @@ int main(){
 };
 
 
-int calculateSum(list<interval> & intervals, int sum, int currentDay, int k){
+long long int calculateSum(list<interval> & intervals, long long int sum, int currentDay, int k){
   // no interval expired
   if(intervals.empty() || currentDay < intervals.begin()->start + k) return sum; 
   
@@ -79,14 +84,10 @@ void push(list<interval> & intervals, int start, int end, int sign){
   intervals.push_back(temp);
 }
 
-int* upvotesMetric(int* upvotes, int n, int k){
-  // Return array 
-  int* metric = new int[n-k+1];
-  // Initialize return array 
-  memset(metric, 0, sizeof(int)*(n-k+1));
+void upvotesMetric(int* & upvotes, long long int* & metric, int n, int k){
 
   // Window size == 1, no need for calculation 
-  if(k == 1) return metric;
+  if(k == 1) return;
 
   //Indicator of current interval status 
   bool in_status = false, de_status = false;
@@ -96,7 +97,7 @@ int* upvotesMetric(int* upvotes, int n, int k){
   list<interval> intervals;
 
   // metric for current window
-  int metric_current = 0;
+  long long int metric_current = 0;
 
   // Go through data of every day
   for(int i = 1; i < n; i++){
@@ -124,17 +125,16 @@ int* upvotesMetric(int* upvotes, int n, int k){
 
     // update metric for current window
     metric_current = calculateSum(intervals, metric_current, i, k);
-    int current_in = in_status ? numInterval(i - in_start + 1) : 0;
-    int current_de = de_status ? numInterval(i - de_start + 1) : 0;
+    long long int current_in = in_status ? numInterval(i - in_start + 1) : 0;
+    long long int current_de = de_status ? numInterval(i - de_start + 1) : 0;
 /*    cout<<"current in list: "<<metric_current<<" in_status "<<
         (in_status ? "T" : "F") <<" de_status "<<(de_status ? "T" : "F")
         <<" in: "<<current_in<<" de: "<<current_de<<endl;//*/
     metric[(i-k < 0) ? 0 : i-k+1] = metric_current + current_in - current_de;
   }
-  return metric;
 }
 
-int numInterval(int length){
+long long int numInterval(int length){
   if(length <= 1) return 0;
-  else return length*(length-1)/2;
+  else return (long long int)length*((long long int)length-1)/2;
 }
