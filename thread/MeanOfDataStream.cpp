@@ -23,7 +23,7 @@ class average{
     average(chrono::seconds d):life(d){
         sum = 0;
         delete_thread_run = true;
-  	life = chrono::seconds(10);
+  	    life = chrono::seconds(10);
         del = thread(&average::deleteOldData, this);
         if(del.joinable()) del.detach();
     }
@@ -64,7 +64,7 @@ class average{
             m.lock();
             sum -= data.front().first;
             data.pop();
-            cout<<"One element Deleted"<<endl;
+            cout<<"Warnning: One Element Deleted"<<endl;
             m.unlock();
          }else{
            this_thread::sleep_until(data.front().second + life);
@@ -87,10 +87,10 @@ int main()
     test.push(temp);
     cout<<"Average    data.size()"<<endl;
     cout<<test.getAverage()<<"            "<<test.getSize()<<endl;
-    char select;
-    cout<<"Continue ? (y)es / (n)o"<<endl;
-    cin >> select;
-    if(select == 'n') run = false;
+    //char select;
+    //cout<<"Continue ? (y)es / (n)o"<<endl;
+    //cin >> select;
+    //if(select == 'n') run = false;
   }
   return 0;
 }
