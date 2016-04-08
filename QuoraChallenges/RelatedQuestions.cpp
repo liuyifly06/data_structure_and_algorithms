@@ -3,7 +3,7 @@
 #include<unordered_map>
 #include<unordered_set>
 #include<queue>
-#include<climits>
+#include<utility>
 using namespace std;
 
 // build graph according to edges
@@ -16,62 +16,71 @@ unordered_map<int, unordered_set<int>> buildGraph(vector<vector<int>> & edges){
   return graph;
 }
 
-// find root of lowest tree (weighted)
-/*
------------------Why root of tree ?----------
-  The graph is actually a tree and there are a 
-lot of nodes in the graph that can be the root
-of a tree. In this question, we need to find a
-root that the hight of the tree is minimized. 
-Of course, one should considering the "reading
-time weight" for calculating the tree height. 
-*/
-int rootOfTree(unordered_map<int, unordered_set<int>> & graph, vector<int> & times){
+// find root of lowest tree 
+int rootOfTree(unordered_map<int, unordered_set<int>> & graph, vector<int> & time){
   if(graph.size() <= 1) return 1;
-  vector<int> time = times;
   
-  int min_life = INT_MAX;
+  //for remembering indegree
+  vector<int> indegree(time.size(), 0);
+  
+  //BFS
   queue<int> leaves;
   for(auto it = graph.begin(); it != graph.end(); it++){
     if(it->second.size() == 1){ // if the node is leaf;
       leaves.push(it->first);
-      min_life = min(min_life, time[it->first]);
+      indegree[it->first] = 1;
     }
   }
-  
+  bool start = false;
   // start from all the leaves, removing nodes  using BFS 
-  while(!leaves.empty() && graph.size() > 2){
+  while(leaves.size() > 2 || (graph.size() > 2 && !start)){
     int n = leaves.size();
-    int next_min_life = INT_MAX;
     for(int i = 0; i < n; i++){
       int node = leaves.front();
+      int inDe = indegree[node];
       leaves.pop();
-      time[node] -= min_life;
-      if(time[node] <= 0){
-        int corr_node = *(graph[node].begin()); 
+      if(graph[node].size() > 0){
+        int corr_node = *(graph[node].begin());
+        indegree[corr_node] += inDe; 
         graph[corr_node].erase(node);
         if(graph[corr_node].size() == 1){
           leaves.push(corr_node);
-          next_min_life = min(next_min_life, time[corr_node]);
         }
         graph.erase(node);
-      }else{
-        leaves.push(node);
-        next_min_life = min(next_min_life, time[node]);
       }
     }
-    min_life = next_min_life;
+    start = true;
   }
   
+
+  if(leaves.size() == 0) return 0;
   // return the optimal root
   // only one node left
-  if(graph.size() == 1) return graph.begin()->first;
+  if(leaves.size() == 1) return leaves.front();
   // two nodes left
-  auto it = graph.begin(); it++;
-  if(time[it->first] == time[graph.begin()->first])
-    return times[it->first] > times[graph.begin()->first] ? graph.begin()->first : it->first;
-  else if(time[it->first] < time[graph.begin()->first]) return it->first;
-  else return graph.begin()->first; 
+  // Choose the node with larger indegree
+  int first  = leaves.front(); leaves.pop();
+  int second = leaves.front(); leaves.push(first); 
+  if(indegree[first] != indegree[second]){
+    return indegree[first] > indegree[second] ? first : second;
+  }else{
+    int min_node = time[first] < time[second] ? first : second;
+    while(!leaves.empty()){
+      int current = leaves.front();
+      leaves.pop();
+      if(time[current] < time[min_node])
+        min_node = current;
+      if(graph[current].size() > 1)
+        cout<<"Error: outDegree > 2 at final stage"<<endl;
+      for(auto it = graph[current].begin(); it != graph[current].end(); it++){
+        leaves.push(*it);
+        graph[*it].erase(current);
+      }
+      graph.erase(current);
+    }
+    return min_node;  
+  }  
+  
 }
 
 
@@ -87,7 +96,7 @@ int main(){
   }
  
   // relationship between questions;
-  vector<vector<int>> edges(n, vector<int>(2, 0));
+  vector<vector<int>> edges(n-1, vector<int>(2, 0));
   for(int i = 0; i < n-1; i++){
     cin >> edges[i][0] >> edges[i][1];
   }
@@ -98,3 +107,4 @@ int main(){
   //find lowest tree root (weighted)
   cout << rootOfTree(graph, time) << endl;
 }
+
